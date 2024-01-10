@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Mobile Computing</string>
+    <string name="message">Messages</string>
+    <string name="biography">Biography</string>
 </resources>
