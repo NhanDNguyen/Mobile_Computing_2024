@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Mobile Computing</string>
-    <string name="message">Messages</string>
-    <string name="biography">Biography</string>
+    <string name="home">Home</string>
+    <string name="profile_entry">New Character</string>
+    <string name="profile_details">Character Details</string>
+    <string name="profile_edit">Edit Character</string>
 </resources>
