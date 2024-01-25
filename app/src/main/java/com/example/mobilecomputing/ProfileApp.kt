@@ -12,7 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.mobilecomputing.navigation.AppNavHost
+import com.example.mobilecomputing.sensor.LightSensor
+import com.example.mobilecomputing.sensor.LightSensorOperation
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +47,13 @@ fun ProfileApp(
     viewModel: AppViewModel
 ) {
     val appSettingsUiState by viewModel.appSettingsUiState.collectAsState()
+    val lightSensor = LightSensor(LocalContext.current)
     MobileComputingTheme(darkTheme = appSettingsUiState.appSettings.isDark) {
+        LightSensorOperation(
+            lightSensor = lightSensor,
+            viewModel = viewModel,
+            delay = 0,
+        )
         AppNavHost(
             viewModel = viewModel,
             modifier = modifier

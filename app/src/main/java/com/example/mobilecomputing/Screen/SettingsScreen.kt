@@ -10,16 +10,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,11 +24,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobilecomputing.AppSettings
-import com.example.mobilecomputing.AppSettingsUiState
 import com.example.mobilecomputing.AppViewModel
 import com.example.mobilecomputing.ProfileTopAppBar
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +35,6 @@ fun SettingsScreen(
     canNavigateBack: Boolean = true,
     viewModel: AppViewModel
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             ProfileTopAppBar(
@@ -51,7 +44,6 @@ fun SettingsScreen(
             )
         }
     ) {innerPadding ->
-
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -61,83 +53,49 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // App theme
-            var checked_theme by remember {
-                mutableStateOf(viewModel.getTheme())
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Dark Theme")
-                Switch(
-                    checked = checked_theme,
-                    onCheckedChange = {
-                        checked_theme = it
-                        viewModel.updateAppSettings(isDark = it)
-                    },
-                    thumbContent = if (checked_theme) {
-                        {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        null
-                    }
-                )
-            }
-
-            var checked_lightSensor by remember {
-                mutableStateOf(viewModel.getTheme())
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Light Sensor")
-                Switch(
-                    checked = checked_lightSensor,
-                    onCheckedChange = {
-                        checked_lightSensor = it
-                        viewModel.updateAppSettings(lightSensorOn = it)
-                    },
-                    thumbContent = if (checked_lightSensor) {
-                        {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        null
-                    }
-                )
-            }
+            SettingsForm(
+                text = "Dark Theme",
+                checked = viewModel.getTheme(),
+                canChecked = !viewModel.getLightSensor(),
+                onCheckedChange = {viewModel.updateAppSettings(isDark = it)}
+            )
+            // Light sensor
+            SettingsForm(
+                text = "Light Sensor",
+                checked = viewModel.getLightSensor(),
+                onCheckedChange = {viewModel.updateAppSettings(lightSensorOn = it)}
+            )
+            // Notification
+            SettingsForm(
+                text = "Notification",
+                checked = viewModel.getNotification(),
+                onCheckedChange = {viewModel.updateAppSettings(notificationOn = it)}
+            )
         }
     }
 }
 
 @Composable
-fun SettingsBody(
+fun SettingsForm(
     modifier: Modifier = Modifier,
-    appSettingsUiState: AppSettingsUiState,
-    onSettingsValuesChange: (AppSettings) -> Unit,
-    onDoneClick: () -> Unit
+    text: String,
+    checked: Boolean,
+    canChecked: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit
 ) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        var checked by remember { mutableStateOf(appSettingsUiState.appSettings.isDark) }
-        // App theme
+        Text(text = text)
         Switch(
             checked = checked,
             onCheckedChange = {
-                checked = it
-                onSettingsValuesChange(appSettingsUiState.appSettings.copy(isDark = checked))
+                if (canChecked) {
+                    onCheckedChange(it)
+                }
             },
             thumbContent = if (checked) {
                 {

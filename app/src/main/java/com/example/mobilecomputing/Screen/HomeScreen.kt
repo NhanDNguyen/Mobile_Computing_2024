@@ -60,6 +60,9 @@ fun HomeScreen(
 ) {
     val homeUiState by viewModel.profileUiStates.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val sensorValuesUIState by viewModel.sensorValuesUIState.collectAsState()
+
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -104,6 +107,10 @@ fun HomeScreen(
             //.fillMaxSize()
         )
     }
+    Column {
+        Text(text = "Light Value: " + sensorValuesUIState.x.toString())
+    }
+
 }
 
 @Composable
