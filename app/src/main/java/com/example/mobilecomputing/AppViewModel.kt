@@ -7,14 +7,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilecomputing.data.Profile
 import com.example.mobilecomputing.data.ProfileDao
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 class AppViewModel(private var db: ProfileDao): ViewModel() {
     var profileUiState by mutableStateOf(ProfileUiState())
         private set
+
+    private val _appSettingsUiState = MutableStateFlow(AppSettingsUiState())
+    val appSettingsUiState: StateFlow<AppSettingsUiState> = _appSettingsUiState.asStateFlow()
 
     var profileUiStates: StateFlow<ProfileUiStates> =
         db.getAllProfiles().map { ProfileUiStates(it) }
@@ -34,6 +40,22 @@ class AppViewModel(private var db: ProfileDao): ViewModel() {
             isValidateInput = validateInput(profile)
         )
     }
+
+    fun updateAppSettings(isDark: Boolean = _appSettingsUiState.value.appSettings.isDark,
+                          lightSensorOn: Boolean = _appSettingsUiState.value.appSettings.lightSensorOn) {
+        _appSettingsUiState.update {currentState ->
+            currentState.copy(
+                appSettings = AppSettings(
+                    isDark = isDark,
+                    lightSensorOn = lightSensorOn
+                )
+            )
+        }
+    }
+
+    fun getTheme() = _appSettingsUiState.value.appSettings.isDark
+
+    fun getLightSensor() = _appSettingsUiState.value.appSettings.lightSensorOn
 
     suspend fun saveProfile() {
         if (validateInput()) {
@@ -69,4 +91,13 @@ data class ProfileUiState(
 
 data class ProfileUiStates(
     val profileList: List<Profile> = listOf()
+)
+
+data class AppSettings(
+    val isDark: Boolean = false,
+    val lightSensorOn: Boolean = false
+)
+
+data class AppSettingsUiState(
+    val appSettings: AppSettings = AppSettings()
 )

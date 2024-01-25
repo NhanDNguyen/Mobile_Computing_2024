@@ -117,7 +117,6 @@ fun InputForm(
             onSelectedImage = {
                 onValueChange(profile.copy(
                     imageData = it
-                    //imageData = getBitmap(it, LocalContext.current)
                 ))
             }
         )

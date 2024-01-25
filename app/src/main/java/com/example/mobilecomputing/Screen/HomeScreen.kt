@@ -5,9 +5,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,6 +55,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navigateToProfileEntry: () -> Unit,
     navigateToProfileUpdate: (Profile) -> Unit,
+    navigateToAppSettings: () -> Unit,
     viewModel: AppViewModel
 ) {
     val homeUiState by viewModel.profileUiStates.collectAsState()
@@ -66,15 +70,29 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = navigateToProfileEntry,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Character"
-                )
+            Column(
+
+                ) {
+                FloatingActionButton(
+                    onClick = navigateToProfileEntry,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Character"
+                    )
+                }
+                FloatingActionButton(
+                    onClick = navigateToAppSettings,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "App Settings"
+                    )
+                }
             }
         }
     ) {innerPadding ->
@@ -140,17 +158,6 @@ fun ProfileCard(
     ) {
 
         var isImageExpanded by remember { mutableStateOf(false) }
-        /*profile.imageData?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = profile.imageDescription,
-                modifier = Modifier
-                    .clickable { isImageExpanded = !isImageExpanded }
-                    .size( if (isImageExpanded) 160.dp else 80.dp)
-                    .clip(CircleShape)
-                    .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-            )
-        }*/
         val imageBitmap = when(profile.imageData) {
             null -> getBitmapFromImage(LocalContext.current, R.drawable.user_placeholder).asImageBitmap()
             else -> profile.imageData.asImageBitmap()

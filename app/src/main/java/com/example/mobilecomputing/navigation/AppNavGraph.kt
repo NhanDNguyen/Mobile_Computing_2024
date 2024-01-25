@@ -13,12 +13,14 @@ import com.example.mobilecomputing.Screen.DetailsScreen
 import com.example.mobilecomputing.Screen.EditScreen
 import com.example.mobilecomputing.Screen.EntryScreen
 import com.example.mobilecomputing.Screen.HomeScreen
+import com.example.mobilecomputing.Screen.SettingsScreen
 
 enum class AppScreen(@StringRes val title: Int) {
     Home(title = R.string.home),
     Entry(title = R.string.profile_entry),
     Details(title = R.string.profile_details),
-    Edit(title = R.string.profile_edit)
+    Edit(title = R.string.profile_edit),
+    Settings(title = R.string.app_settings)
 }
 
 @Composable
@@ -42,6 +44,9 @@ fun AppNavHost(
                     viewModel.updateProfileUiState(it)
                     navController.navigate(route = AppScreen.Details.name)
                 },
+                navigateToAppSettings = {
+                    navController.navigate(route = AppScreen.Settings.name)
+                },
                 viewModel = viewModel
             )
         }
@@ -64,6 +69,13 @@ fun AppNavHost(
         }
         composable(route = AppScreen.Edit.name) {
             EditScreen(
+                navigateBack = { navController.popBackStack() },
+                onNavigateUp = { navController.navigateUp() },
+                viewModel = viewModel
+            )
+        }
+        composable(route = AppScreen.Settings.name) {
+            SettingsScreen(
                 navigateBack = { navController.popBackStack() },
                 onNavigateUp = { navController.navigateUp() },
                 viewModel = viewModel

@@ -9,8 +9,6 @@ class NotificationService(private val context: Context) {
         .setSmallIcon(R.drawable.notification)
         .setContentTitle("Brightness notification")
         .setContentText("Changing App Theme")
-        .setStyle(NotificationCompat.BigTextStyle().bigText("Chaning App Theme"))
+        .setStyle(NotificationCompat.BigTextStyle().bigText("Changing App Theme"))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-    
 }

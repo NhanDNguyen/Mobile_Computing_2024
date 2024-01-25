@@ -9,8 +9,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.mobilecomputing.navigation.AppNavHost
+import com.example.mobilecomputing.ui.theme.MobileComputingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,8 +43,11 @@ fun ProfileApp(
     modifier: Modifier = Modifier,
     viewModel: AppViewModel
 ) {
-    AppNavHost(
-        viewModel = viewModel,
-        modifier = modifier
-    )
+    val appSettingsUiState by viewModel.appSettingsUiState.collectAsState()
+    MobileComputingTheme(darkTheme = appSettingsUiState.appSettings.isDark) {
+        AppNavHost(
+            viewModel = viewModel,
+            modifier = modifier
+        )
+    }
 }
