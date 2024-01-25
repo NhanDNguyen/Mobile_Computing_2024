@@ -100,7 +100,7 @@ private fun HomeBody(
     ) {
         if (profileList.isEmpty()) {
             Text(
-                text = "Empty! Tap + top add new character.",
+                text = "Empty! Tap + to add new character.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge
             )
