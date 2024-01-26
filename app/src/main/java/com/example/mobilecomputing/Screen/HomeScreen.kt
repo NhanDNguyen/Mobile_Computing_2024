@@ -107,9 +107,9 @@ fun HomeScreen(
             //.fillMaxSize()
         )
     }
-    Column {
+    /*Column {
         Text(text = "Light Value: " + sensorValuesUIState.x.toString())
-    }
+    }*/
 
 }
 

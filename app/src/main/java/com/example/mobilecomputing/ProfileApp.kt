@@ -1,5 +1,9 @@
 package com.example.mobilecomputing
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -14,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.mobilecomputing.navigation.AppNavHost
+import com.example.mobilecomputing.notification.NotificationService
 import com.example.mobilecomputing.sensor.LightSensor
 import com.example.mobilecomputing.sensor.LightSensorOperation
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
@@ -41,6 +46,7 @@ fun ProfileTopAppBar(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileApp(
     modifier: Modifier = Modifier,

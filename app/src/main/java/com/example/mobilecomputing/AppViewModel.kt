@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilecomputing.data.Profile
 import com.example.mobilecomputing.data.ProfileDao
+import com.example.mobilecomputing.notification.NotificationService
+import com.example.mobilecomputing.notification.PRIORITY_HIGH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +17,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-class AppViewModel(private var db: ProfileDao): ViewModel() {
+class AppViewModel(
+    private var db: ProfileDao,
+    private val notificationService: NotificationService
+): ViewModel() {
+
     var profileUiState by mutableStateOf(ProfileUiState())
         private set
 
@@ -44,6 +50,26 @@ class AppViewModel(private var db: ProfileDao): ViewModel() {
         )
     }
 
+    private fun showNotification(
+        ID: Int,
+        CHANNEL_ID: String,
+        ic_launcher_forground_id: Int,
+        title: String,
+        text: String,
+        priority: Int,
+        bigText: String = ""
+    ) {
+        notificationService.showNotification(
+            ID = ID,
+            CHANNEL_ID = CHANNEL_ID,
+            ic_launcher_forground_id = ic_launcher_forground_id,
+            title = title,
+            text = text,
+            priority = priority,
+            bigText = bigText
+        )
+    }
+
     fun updateAppSettings(
         isDark: Boolean = _appSettingsUiState.value.appSettings.isDark,
         lightSensorOn: Boolean = _appSettingsUiState.value.appSettings.lightSensorOn,
@@ -62,6 +88,11 @@ class AppViewModel(private var db: ProfileDao): ViewModel() {
 
     //private var luxValue = 0f
     fun updateLightSensorValue(lux: Float = 0f,) {
+        val notification_ID = 100
+        val notification_channel_ID = "notification_theme"
+        val ic_launcher_forground_id = R.drawable.notification
+        val title = "light notification"
+        val priority = PRIORITY_HIGH
         // Light Sensor
         //luxValue = lux
         _sensorValuesUiState.update {currentState ->
@@ -69,27 +100,54 @@ class AppViewModel(private var db: ProfileDao): ViewModel() {
                 x = lux
             )
         }
-        if (lux >= 500f) {
-            _appSettingsUiState.update {currentState ->
-                currentState.copy(
-                    appSettings = AppSettings(
-                        isDark = false,
+        if (lux >= 401f) {
+            if (!getTheme()) {
+                _appSettingsUiState.update {currentState ->
+                    if (getNotification()) {
+                        showNotification(
+                            ID = notification_ID,
+                            CHANNEL_ID = notification_channel_ID,
+                            ic_launcher_forground_id = ic_launcher_forground_id,
+                            title = title,
+                            text = "lux = ${lux}, switch to dark theme",
+                            priority = priority
+                        )
+                    }
+                    currentState.copy(
+                        appSettings = AppSettings(
+                            isDark = true,
+                            lightSensorOn = getLightSensor(),
+                            notificationOn = getNotification()
+                        )
                     )
-                )
+                }
             }
-        } else if (lux < 500f) {
-            _appSettingsUiState.update {currentState ->
-                currentState.copy(
-                    appSettings = AppSettings(
-                        isDark = true,
+        } else if (lux < 401f) {
+            if (getTheme()) {
+                _appSettingsUiState.update {currentState ->
+                    if (getNotification()) {
+                        showNotification(
+                            ID = notification_ID,
+                            CHANNEL_ID = notification_channel_ID,
+                            ic_launcher_forground_id = ic_launcher_forground_id,
+                            title = title,
+                            text = "lux = ${lux}, switch to light theme",
+                            priority = priority
+                        )
+                    }
+                    currentState.copy(
+                        appSettings = AppSettings(
+                            isDark = false,
+                            lightSensorOn = getLightSensor(),
+                            notificationOn = getNotification()
+                        )
                     )
-                )
+                }
             }
         }
     }
 
     fun getTheme() = _appSettingsUiState.value.appSettings.isDark
-
     fun getLightSensor() = _appSettingsUiState.value.appSettings.lightSensorOn
     fun getNotification() = _appSettingsUiState.value.appSettings.notificationOn
 
