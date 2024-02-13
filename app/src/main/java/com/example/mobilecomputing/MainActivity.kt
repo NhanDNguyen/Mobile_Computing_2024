@@ -13,7 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.room.Room
-import com.example.mobilecomputing.data.ProfileDatabase
+import com.example.mobilecomputing.Screen.EntryScreen
+import com.example.mobilecomputing.data.NoteDatabase
 import com.example.mobilecomputing.notification.NotificationService
 import com.example.mobilecomputing.notification.REQUEST_CODE
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
@@ -25,7 +26,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val db = Room.databaseBuilder(
                 applicationContext,
-                ProfileDatabase::class.java, "profiles_database"
+                NoteDatabase::class.java, "profiles_database"
             ).build()
             val notificationService = NotificationService(applicationContext)
             val notificationChannel = NotificationChannel(
@@ -46,9 +47,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             notificationService.notificationManager.createNotificationChannel(notificationChannel)
-            val profileDao = db.profileDao()
+            val profileDao = db.noteDao()
             val viewModel = AppViewModel(profileDao, notificationService)
-            ProfileApp(viewModel = viewModel)
+            NoteApp(viewModel = viewModel)
+            //EntryScreen(viewModel = viewModel, onNavigateUp = { /*TODO*/ }, navigateBack = { /*TODO*/ })
         }
     }
 }

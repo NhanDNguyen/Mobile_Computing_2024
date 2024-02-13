@@ -1,7 +1,5 @@
 package com.example.mobilecomputing
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
@@ -16,16 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import com.example.mobilecomputing.navigation.AppNavHost
-import com.example.mobilecomputing.notification.NotificationService
-import com.example.mobilecomputing.sensor.LightSensor
-import com.example.mobilecomputing.sensor.LightSensorOperation
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileTopAppBar(
+fun NoteTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     canNavigateBack: Boolean,
@@ -48,18 +42,12 @@ fun ProfileTopAppBar(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProfileApp(
+fun NoteApp(
     modifier: Modifier = Modifier,
     viewModel: AppViewModel
 ) {
     val appSettingsUiState by viewModel.appSettingsUiState.collectAsState()
-    val lightSensor = LightSensor(LocalContext.current)
     MobileComputingTheme(darkTheme = appSettingsUiState.appSettings.isDark) {
-        LightSensorOperation(
-            lightSensor = lightSensor,
-            viewModel = viewModel,
-            delay = 0,
-        )
         AppNavHost(
             viewModel = viewModel,
             modifier = modifier

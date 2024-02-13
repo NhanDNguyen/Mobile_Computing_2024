@@ -1,220 +1,181 @@
 package com.example.mobilecomputing.Screen
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.mobilecomputing.AppViewModel
-import com.example.mobilecomputing.ProfileTopAppBar
-import com.example.mobilecomputing.R
-import com.example.mobilecomputing.data.Profile
-import com.example.mobilecomputing.data.getBitmapFromImage
-
+import com.example.mobilecomputing.NoteTopAppBar
+import com.example.mobilecomputing.data.Note
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    navigateToProfileEntry: () -> Unit,
-    navigateToProfileUpdate: (Profile) -> Unit,
-    navigateToAppSettings: () -> Unit,
+    navigateToNoteEntry: () -> Unit,
+    navigateToNoteUpdate: (Note) -> Unit,
     viewModel: AppViewModel
 ) {
-    val homeUiState by viewModel.profileUiStates.collectAsState()
+    val homeUiState by viewModel.noteUiStates.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
-    val sensorValuesUIState by viewModel.sensorValuesUIState.collectAsState()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            ProfileTopAppBar(
-                title = "Home",
+            NoteTopAppBar(
+                title = "All notes\n${homeUiState.noteList.size} note(s)",
                 canNavigateBack = false,
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
-            Column(
-
-                ) {
-                FloatingActionButton(
-                    onClick = navigateToProfileEntry,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Character"
-                    )
-                }
-                FloatingActionButton(
-                    onClick = navigateToAppSettings,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "App Settings"
-                    )
-                }
+            FloatingActionButton(
+                onClick = navigateToNoteEntry,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Create,
+                    contentDescription = "Create new note"
+                )
             }
         }
-    ) {innerPadding ->
+    ) { innerPadding ->
         HomeBody(
-            profileList = homeUiState.profileList,
-            onProfileClick = navigateToProfileUpdate,
+            noteList = homeUiState.noteList,
+            onNoteClick = navigateToNoteUpdate,
             modifier = modifier
                 .padding(innerPadding)
-            //.fillMaxSize()
+                .fillMaxSize()
         )
     }
-    /*Column {
-        Text(text = "Light Value: " + sensorValuesUIState.x.toString())
-    }*/
-
 }
 
 @Composable
 private fun HomeBody(
     modifier: Modifier = Modifier,
-    profileList: List<Profile>,
-    onProfileClick: (Profile) -> Unit,
+    noteList: List<Note>,
+    onNoteClick: (Note) -> Unit,
+) {
+    val configuration = LocalConfiguration.current
+    val widthInDp = configuration.screenWidthDp.dp
+    val heightInDp = configuration.screenHeightDp.dp
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp)
+    ) {
+        items(noteList) { note ->
+            NoteCard(
+                note = note,
+                onNoteClick = {onNoteClick(note)},
+                widthInDp = widthInDp/2.25f,
+                heightInDp = heightInDp/3)
+        }
+    }
+}
+
+@Composable
+private fun NoteCard(
+    modifier: Modifier = Modifier,
+    note: Note,
+    onNoteClick: (Note) -> Unit,
+    widthInDp: Dp,
+    heightInDp: Dp
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (profileList.isEmpty()) {
-            Text(
-                text = "Empty! Tap + to add new character.",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge
-            )
-        } else {
-            ProfileListScreen(
-                profiles = profileList,
-                onClick = { onProfileClick(it) },
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun ProfileListScreen(
-    profiles: List<Profile>,
-    onClick: (Profile) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier
-    ) {
-        items(profiles) { profile ->
-            ProfileCard(profile = profile, onClick = { onClick(profile)} )
-        }
-    }
-}
-
-@Composable
-fun ProfileCard(
-    modifier: Modifier = Modifier,
-    profile: Profile,
-    onClick: (Profile) -> Unit,
-) {
-    Row(
-        modifier = modifier.padding(all = 8.dp),
-    ) {
-
-        var isImageExpanded by remember { mutableStateOf(false) }
-        val imageBitmap = when(profile.imageData) {
-            null -> getBitmapFromImage(LocalContext.current, R.drawable.user_placeholder).asImageBitmap()
-            else -> profile.imageData.asImageBitmap()
-        }
-        Image(
-            bitmap = imageBitmap,
-            contentDescription = profile.imageDescription,
+        ElevatedCard(
+            elevation = CardDefaults.cardElevation(6.dp),
             modifier = Modifier
-                .clickable { isImageExpanded = !isImageExpanded }
-                .size(if (isImageExpanded) 160.dp else 80.dp)
-                .clip(CircleShape)
-                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        var isExpanded by remember { mutableStateOf(false) }
-        val surfaceColor by animateColorAsState(
-            if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-            label = ""
-        )
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
+                .size(width = widthInDp, height = heightInDp)
+                .clickable { onNoteClick(note) }
+                .padding(6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
         ) {
-            Text(
-                text = profile.name,
-                color = MaterialTheme.colorScheme.secondary,
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.clickable { onClick( profile ) }
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                shadowElevation = 1.dp,
-                color = surfaceColor,
-                modifier = Modifier
-                    .animateContentSize()
-                    .padding(1.dp)
-            ) {
+            if (note.imageData != null) {
+                Image(
+                    bitmap = note.imageData.asImageBitmap(),
+                    contentDescription = "image"
+                )
+            } else {
                 Text(
-                    text = profile.info,
-                    modifier = Modifier
-                        .padding(all = 4.dp)
-                        .clickable { isExpanded = !isExpanded },
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 1
+                    text = note.body,
+                    modifier = Modifier.padding(8.dp),
                 )
             }
         }
+        //Spacer(modifier = Modifier.height(8.dp))
+        Text(text = note.title, fontWeight = FontWeight.Bold)
+        //Spacer(modifier = Modifier.height(8.dp))
+        Text(text = note.date, color = Color.Gray)
     }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
