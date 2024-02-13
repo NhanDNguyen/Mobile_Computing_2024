@@ -8,6 +8,4 @@ import androidx.room.TypeConverters
 @TypeConverters(Converters::class)
 abstract class NoteDatabase: RoomDatabase() {
     abstract fun noteDao(): NoteDao
-
-
 }

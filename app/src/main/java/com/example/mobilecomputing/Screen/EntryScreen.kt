@@ -1,7 +1,10 @@
 package com.example.mobilecomputing.Screen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -37,12 +40,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mobilecomputing.AppViewModel
 import com.example.mobilecomputing.data.Note
+import com.example.mobilecomputing.data.getBitmap
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
+
+enum class Functionality{
+    NONE, CAMERA, DELETE, MIC
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,8 +107,9 @@ fun EntryScreen(
     screenName: String = "entry"
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
+    var functionality by rememberSaveable { mutableStateOf(Functionality.NONE) }
     val sdfDate = SimpleDateFormat("MMM dd, yyyy").format(Date())
+
     Scaffold(
         topBar = {
             var isTitleClicked by remember{mutableStateOf(false)}
@@ -143,13 +153,9 @@ fun EntryScreen(
                         navigateBack()
                     }
                  },
-                onCameraClick = {/*TODO*/},
-                onMicClick = {/*TODO*/},
-                onDeleteClick = {
-                    coroutineScope.launch {
-                        deleteConfirmationRequired = true
-                    }
-                },
+                onCameraClick = { functionality = Functionality.CAMERA },
+                onMicClick = {functionality = Functionality.MIC},
+                onDeleteClick = {functionality = Functionality.DELETE},
             )
         }
     ) { innerPadding ->
@@ -158,22 +164,31 @@ fun EntryScreen(
             onValueChange = viewModel::updatenoteUiState,
             modifier = Modifier.padding(innerPadding)
         )
-        if (deleteConfirmationRequired) {
-            DeleteConfirmationDialog(
-                onDeleteConfirm = {
-                    deleteConfirmationRequired = false
-                    coroutineScope.launch {
-                        // Delete Note
-                        // TODO: Delete Audios corresponding to this note
-                        viewModel.deletenote()
-                        navigateBack()
-                    }
-                },
-                onDeleteCancel = { deleteConfirmationRequired = false },
-                modifier = Modifier.padding(16.dp)
-            )
+        when (functionality) {
+            Functionality.DELETE ->
+                DeleteConfirmationDialog(
+                    onDeleteConfirm = {
+                        functionality = Functionality.NONE
+                        coroutineScope.launch {
+                            // Delete Note
+                            // TODO: Delete Audios corresponding to this note
+                            viewModel.deletenote()
+                            navigateBack()
+                        }
+                    },
+                    onDeleteCancel = { functionality = Functionality.NONE },
+                    modifier = Modifier.padding(16.dp)
+                )
+            Functionality.CAMERA ->
+                CameraAndPhotoSelector(
+                    onSelectedImage = {
+                        viewModel.updatenoteUiState(viewModel.noteUiState.note.copy(imageData = it))
+                        functionality = Functionality.NONE
+                    },
+                    onCancel = { functionality = Functionality.NONE }
+                )
+            else -> functionality = Functionality.NONE
         }
-
     }
 }
 
@@ -237,6 +252,61 @@ private fun DeleteConfirmationDialog(
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
                 Text(text = "Yes")
+            }
+        }
+    )
+}
+
+@Composable
+fun CameraAndPhotoSelector(
+    onSelectedImage: (Bitmap?) -> Unit,
+    onCancel: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                coroutineScope.launch {
+                    onSelectedImage(getBitmap(uri, context))
+                }
+            }
+        }
+    )
+    fun launchPhotoPicker() {
+        singlePhotoPickerLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
+    val singlePictureCaptureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { capturedImage ->
+        if (capturedImage != null) {
+            onSelectedImage(capturedImage)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = {  },
+        title = { Text(text = "Attention") },
+        text = { Text(text = "Choose one the options") },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text(text = "No")
+            }
+            TextButton(onClick = {onSelectedImage(null)}) {
+                Text(text = "Delete current image")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {singlePictureCaptureLauncher.launch()}) {
+                Text(text = "take picture")
+            }
+            TextButton(onClick = {launchPhotoPicker()}) {
+                Text(text = "pick photo")
             }
         }
     )

@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -137,7 +138,9 @@ private fun NoteCard(
             if (note.imageData != null) {
                 Image(
                     bitmap = note.imageData.asImageBitmap(),
-                    contentDescription = "image"
+                    contentDescription = "image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
                 )
             } else {
                 Text(
@@ -146,9 +149,7 @@ private fun NoteCard(
                 )
             }
         }
-        //Spacer(modifier = Modifier.height(8.dp))
         Text(text = note.title, fontWeight = FontWeight.Bold)
-        //Spacer(modifier = Modifier.height(8.dp))
         Text(text = note.date, color = Color.Gray)
     }
 
