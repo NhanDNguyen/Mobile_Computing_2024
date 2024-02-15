@@ -10,19 +10,16 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface NoteDao {
+interface TextNoteDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertNote(note: Note): Long
+    suspend fun insertTextNote(textNote: TextNote)
 
     @Update
-    suspend fun updateNote(note: Note)
+    suspend fun updateTextNote(textNote: TextNote)
 
     @Delete
-    suspend fun deleteNote(note: Note)
+    suspend fun deleteTextNote(textNote: TextNote)
 
-    @Query("SELECT * from notes WHERE id= :id LIMIT 1")
-    fun getNote(id: Long): LiveData<Note>
-
-    @Query("SELECT * from notes ORDER BY title ASC")
-    fun getAllNotes(): Flow<List<Note>>
+    @Query("SELECT * from texts WHERE id= :id")
+    fun getTextNote(id: Long): Flow<TextNote>
 }

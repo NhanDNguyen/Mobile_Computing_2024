@@ -5,125 +5,222 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mobilecomputing.data.AudioNote
+import com.example.mobilecomputing.data.AudioNoteDao
+import com.example.mobilecomputing.data.ImageNote
+import com.example.mobilecomputing.data.ImageNoteDao
 import com.example.mobilecomputing.data.Note
 import com.example.mobilecomputing.data.NoteDao
-import com.example.mobilecomputing.notification.NotificationService
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.mobilecomputing.data.TextNote
+import com.example.mobilecomputing.data.TextNoteDao
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import java.util.Date
 
 class AppViewModel(
-    private var db: NoteDao,
-    private val notificationService: NotificationService
+    private val noteDB: NoteDao,
+    private val textNoteDB: TextNoteDao,
+    private val imageNoteDB: ImageNoteDao,
+    private val audioNoteDB: AudioNoteDao
 ): ViewModel() {
-    var noteUiState by mutableStateOf(noteUiState())
+    var currentOptionState by mutableStateOf("text")
+        private set
+    var textNoteUiState by mutableStateOf(TextNoteUiState())
         private set
 
-    private val _appSettingsUiState = MutableStateFlow(AppSettingsUiState())
-    val appSettingsUiState: StateFlow<AppSettingsUiState> = _appSettingsUiState.asStateFlow()
+    var currentTextNoteId by mutableStateOf(0L)
+    var imageNoteUiState by mutableStateOf(ImageNoteUiState())
+        private set
 
-    var noteUiStates: StateFlow<noteUiStates> =
-        db.getAllNotes().map { noteUiStates(it) }
+    var audioNoteUiState by mutableStateOf(AudioNoteUiState())
+        private set
+
+    var noteUiStates: StateFlow<NoteUiStates> =
+        noteDB.getAllNotes().map { NoteUiStates(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = noteUiStates()
+                initialValue = NoteUiStates()
             )
 
-
-    fun resetnoteUiState() {
-        noteUiState = noteUiState()
+    var currentTextNote: StateFlow<TextNote> =
+        textNoteDB.getTextNote(currentTextNoteId)
+            .filterNotNull()
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = TextNote()
+            )
+    /****************************************** TextNote ******************************************/
+    fun resetTextNoteUiState() {
+        textNoteUiState = TextNoteUiState()
     }
 
-    fun updatenoteUiState(note: Note) {
-        noteUiState = noteUiState(
+    fun updateTextNoteUiState(textNoteUiState: TextNoteUiState) {
+        this.textNoteUiState = textNoteUiState
+    }
+
+    fun updateTextNoteUiState(note: Note) {
+        currentTextNoteId = note.id
+        textNoteUiState = TextNoteUiState(
+            id = note.id,
+            title = note.title,
+            date = note.date,
+            type = note.type,
+            body = currentTextNote.value.body
+        )
+    }
+
+    fun getTextNoteUiState(note: Note): TextNoteUiState {
+        currentTextNoteId = note.id
+        return TextNoteUiState(
+            id = note.id,
+            title = note.title,
+            date = note.date,
+            type = note.type,
+            body = String()
+        )
+    }
+
+    suspend fun insertNewTextNote() {
+        if (validateTextNoteInput()) {
+            if (textNoteUiState.title == "") {
+                updateTextNoteUiState(textNoteUiState.copy(title = "Title"))
+            }
+            val id = noteDB.insertNote(textNoteUiState.toNote())
+            textNoteDB.insertTextNote(TextNote(id = id, body = textNoteUiState.body))
+        }
+    }
+
+    suspend fun updateTextNote() {
+        if (validateTextNoteInput()) {
+            noteDB.updateNote(textNoteUiState.toNote())
+            textNoteDB.updateTextNote(textNoteUiState.toTextNote())
+        }
+    }
+
+    fun getTextNote() = textNoteDB.getTextNote(textNoteUiState.id)
+    /*private fun getTextNote(id: Long): TextNote {
+        val note = noteDB.getNote(id).value?: Note()
+        return textNoteDB.getTextNote(id).value ?: TextNote(body = note.id.toString())
+    }*/
+
+    suspend fun deleteTextNote() {
+        noteDB.deleteNote(textNoteUiState.toNote())
+        textNoteDB.deleteTextNote(textNoteUiState.toTextNote())
+    }
+
+    private fun validateTextNoteInput(): Boolean = textNoteUiState.body.isNotBlank()
+    /****************************************** TextNote ******************************************/
+
+    /***************************************** ImageNote *****************************************/
+    fun resetImageNoteUiState() {
+        imageNoteUiState = ImageNoteUiState()
+    }
+
+    fun updateImageNoteUiState(note: Note, imageNote: ImageNote) {
+        imageNoteUiState = ImageNoteUiState(
             note = note,
-            isValidateInput = validateInput(note)
+            imageNote = imageNote,
+            isValidateInput = validateImageNoteInput()
         )
     }
 
-    private fun showNotification(
-        ID: Int,
-        CHANNEL_ID: String,
-        ic_launcher_forground_id: Int,
-        title: String,
-        text: String,
-        priority: Int,
-        bigText: String = ""
-    ) {
-        notificationService.showNotification(
-            ID = ID,
-            CHANNEL_ID = CHANNEL_ID,
-            ic_launcher_forground_id = ic_launcher_forground_id,
-            title = title,
-            text = text,
-            priority = priority,
-            bigText = bigText
+    suspend fun insertNewImageNote() {
+        if (validateImageNoteInput()) {
+            val id = noteDB.insertNote(imageNoteUiState.note)
+            imageNoteDB.insertImageNote(imageNoteUiState.imageNote.copy(id=id))
+        }
+    }
+
+    suspend fun updateImageNote() {
+        if (validateImageNoteInput()) {
+            noteDB.updateNote(imageNoteUiState.note)
+            imageNoteDB.updateImageNote(imageNoteUiState.imageNote)
+        }
+    }
+
+    suspend fun deleteImageNote() {
+        noteDB.deleteNote(imageNoteUiState.note)
+        imageNoteDB.deleteImageNote(imageNoteUiState.imageNote)
+    }
+
+    private fun validateImageNoteInput(): Boolean = imageNoteUiState.imageNote.imageData != null
+    /***************************************** ImageNote *****************************************/
+
+    /******************************************AudioNote***********************************/
+    fun resetAudioNoteUiState() {
+        audioNoteUiState = AudioNoteUiState()
+    }
+
+    fun updateAudioNoteUiState(note: Note, audioNote: AudioNote) {
+        audioNoteUiState = AudioNoteUiState(
+            note = note,
+            audioNote = audioNote,
+            isValidateInput = validateAudioNoteInput()
         )
     }
 
-    fun updateAppSettings(
-        isDark: Boolean = _appSettingsUiState.value.appSettings.isDark,
-        lightSensorOn: Boolean = _appSettingsUiState.value.appSettings.lightSensorOn,
-        notificationOn: Boolean = _appSettingsUiState.value.appSettings.notificationOn
-    ) {
-        _appSettingsUiState.update {currentState ->
-            currentState.copy(
-                appSettings = AppSettings(
-                    isDark = isDark,
-                    lightSensorOn = lightSensorOn,
-                    notificationOn = notificationOn
-                )
-            )
+    suspend fun insertNewAudioNote() {
+        if (validateAudioNoteInput()) {
+            val id = noteDB.insertNote(audioNoteUiState.note)
+            audioNoteDB.insertAudioNote(audioNoteUiState.audioNote.copy(id=id))
         }
     }
 
-    fun getTheme() = _appSettingsUiState.value.appSettings.isDark
-    fun getNotification() = _appSettingsUiState.value.appSettings.notificationOn
-
-    suspend fun insertNewNote() {
-        if (validateInput()) {
-            db.insertNote(noteUiState.note)
+    suspend fun updateAudioNote() {
+        if (validateImageNoteInput()) {
+            noteDB.updateNote(audioNoteUiState.note)
+            audioNoteDB.updateAudioNote(audioNoteUiState.audioNote)
         }
     }
 
-    suspend fun updatenote() {
-        if (validateInput()) {
-            db.updateNote(noteUiState.note)
-        }
+    suspend fun deleteAudioNote() {
+        noteDB.deleteNote(audioNoteUiState.note)
+        audioNoteDB.deleteAudioNote(audioNoteUiState.audioNote)
     }
 
-    suspend fun deletenote() {
-        db.deleteNote(noteUiState.note)
-    }
-
-    private fun validateInput(note: Note = noteUiState.note): Boolean {
-        return with(note) {
-            title.isNotBlank() && body.isNotBlank()
-        }
-    }
-
+    private fun validateAudioNoteInput(): Boolean = audioNoteUiState.audioNote.filePath != ""
+    /******************************************AudioNote***********************************/
 }
 
-data class noteUiState(
-    val note: Note = Note(),
-    val isValidateInput: Boolean = false
-)
-
-data class noteUiStates(
+data class NoteUiStates(
     val noteList: List<Note> = listOf()
 )
 
-data class AppSettings(
-    val isDark: Boolean = false,
-    val lightSensorOn: Boolean = true,
-    val notificationOn: Boolean = true
+data class TextNoteUiState(
+    val id: Long = 0,
+    val title: String = "",
+    val date: Long = Date().time,
+    val type: String = "text",
+    val body: String = "",
+    val isValidateInput: Boolean = false
 )
 
-data class AppSettingsUiState(
-    val appSettings: AppSettings = AppSettings()
+fun TextNoteUiState.toNote() = Note(
+    id = id,
+    title = title,
+    date = date,
+    type = type
+)
+
+fun TextNoteUiState.toTextNote() = TextNote(
+    id = id,
+    body = body
+)
+
+data class ImageNoteUiState(
+    val note: Note = Note(),
+    val imageNote: ImageNote = ImageNote(),
+    val isValidateInput: Boolean = false
+)
+
+data class AudioNoteUiState(
+    val note: Note = Note(),
+    val audioNote: AudioNote = AudioNote(),
+    val isValidateInput: Boolean = false
 )

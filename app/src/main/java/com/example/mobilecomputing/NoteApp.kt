@@ -11,8 +11,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.mobilecomputing.navigation.AppNavHost
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
@@ -46,8 +44,7 @@ fun NoteApp(
     modifier: Modifier = Modifier,
     viewModel: AppViewModel
 ) {
-    val appSettingsUiState by viewModel.appSettingsUiState.collectAsState()
-    MobileComputingTheme(darkTheme = appSettingsUiState.appSettings.isDark) {
+    MobileComputingTheme() {
         AppNavHost(
             viewModel = viewModel,
             modifier = modifier

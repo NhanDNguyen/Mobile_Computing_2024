@@ -11,6 +11,8 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
+import java.util.*
 
 class Converters {
     @TypeConverter
@@ -24,6 +26,17 @@ class Converters {
     fun toBitmap(byteArray: ByteArray): Bitmap {
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
+
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Date? {
+        return value?.let { Date(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? {
+        return date?.time?.toLong()
+    }
+
 }
 
 suspend fun getBitmap(uri: Uri?, context: Context): Bitmap {

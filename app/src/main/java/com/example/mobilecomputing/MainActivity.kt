@@ -24,31 +24,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             val db = Room.databaseBuilder(
                 applicationContext,
                 NoteDatabase::class.java, "profiles_database"
             ).build()
-            val notificationService = NotificationService(applicationContext)
-            val notificationChannel = NotificationChannel(
-                "notification_theme",
-                "Changing Theme",
-                NotificationManager.IMPORTANCE_HIGH
+            val viewModel = AppViewModel(
+                noteDB = db.noteDao(),
+                textNoteDB = db.textNoteDao(),
+                imageNoteDB = db.imageNoteDao(),
+                audioNoteDB = db.audioNoteDao()
             )
-            with(NotificationManagerCompat.from(applicationContext)) {
-                if (ActivityCompat.checkSelfPermission(
-                        this@MainActivity,
-                        android.Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED)  {
-                    ActivityCompat.requestPermissions(
-                        this@MainActivity,
-                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                        REQUEST_CODE
-                    )
-                }
-            }
-            notificationService.notificationManager.createNotificationChannel(notificationChannel)
-            val profileDao = db.noteDao()
-            val viewModel = AppViewModel(profileDao, notificationService)
             NoteApp(viewModel = viewModel)
             //EntryScreen(viewModel = viewModel, onNavigateUp = { /*TODO*/ }, navigateBack = { /*TODO*/ })
         }

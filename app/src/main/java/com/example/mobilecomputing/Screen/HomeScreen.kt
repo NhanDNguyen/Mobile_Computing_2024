@@ -1,18 +1,14 @@
 package com.example.mobilecomputing.Screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.CardDefaults
@@ -30,17 +26,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.mobilecomputing.AppViewModel
 import com.example.mobilecomputing.NoteTopAppBar
+import com.example.mobilecomputing.TextNoteUiState
 import com.example.mobilecomputing.data.Note
+import com.example.mobilecomputing.util.getDateAsString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,14 +45,14 @@ fun HomeScreen(
     navigateToNoteUpdate: (Note) -> Unit,
     viewModel: AppViewModel
 ) {
-    val homeUiState by viewModel.noteUiStates.collectAsState()
+    val homeUiStates by viewModel.noteUiStates.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             NoteTopAppBar(
-                title = "All notes\n${homeUiState.noteList.size} note(s)",
+                title = "All notes\n${homeUiStates.noteList.size} note(s)",
                 canNavigateBack = false,
                 scrollBehavior = scrollBehavior
             )
@@ -76,11 +71,12 @@ fun HomeScreen(
         }
     ) { innerPadding ->
         HomeBody(
-            noteList = homeUiState.noteList,
+            noteList = homeUiStates.noteList,
             onNoteClick = navigateToNoteUpdate,
             modifier = modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            viewModel = viewModel
         )
     }
 }
@@ -90,6 +86,7 @@ private fun HomeBody(
     modifier: Modifier = Modifier,
     noteList: List<Note>,
     onNoteClick: (Note) -> Unit,
+    viewModel: AppViewModel,
 ) {
     val configuration = LocalConfiguration.current
     val widthInDp = configuration.screenWidthDp.dp
@@ -104,20 +101,26 @@ private fun HomeBody(
             .padding(top = 8.dp)
     ) {
         items(noteList) { note ->
-            NoteCard(
-                note = note,
-                onNoteClick = {onNoteClick(note)},
-                widthInDp = widthInDp/2.25f,
-                heightInDp = heightInDp/3)
+            when(note.type) {
+                "text" -> {
+                    TextNoteCard(
+                        textNoteUiState = viewModel.getTextNoteUiState(note),
+                        onNoteClick = {onNoteClick(note)},
+                        widthInDp = widthInDp/2.25f,
+                        heightInDp = heightInDp/3
+                    )
+                }
+                else -> {}
+            }
         }
     }
 }
 
 @Composable
-private fun NoteCard(
+private fun TextNoteCard(
     modifier: Modifier = Modifier,
-    note: Note,
-    onNoteClick: (Note) -> Unit,
+    textNoteUiState: TextNoteUiState,
+    onNoteClick: (TextNoteUiState) -> Unit,
     widthInDp: Dp,
     heightInDp: Dp
 ) {
@@ -129,28 +132,19 @@ private fun NoteCard(
             elevation = CardDefaults.cardElevation(6.dp),
             modifier = Modifier
                 .size(width = widthInDp, height = heightInDp)
-                .clickable { onNoteClick(note) }
+                .clickable { onNoteClick(textNoteUiState) }
                 .padding(6.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             )
         ) {
-            if (note.imageData != null) {
-                Image(
-                    bitmap = note.imageData.asImageBitmap(),
-                    contentDescription = "image",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Text(
-                    text = note.body,
-                    modifier = Modifier.padding(8.dp),
-                )
-            }
+            Text(
+                text = textNoteUiState.body,
+                modifier = Modifier.padding(8.dp),
+            )
         }
-        Text(text = note.title, fontWeight = FontWeight.Bold)
-        Text(text = note.date, color = Color.Gray)
+        Text(text = textNoteUiState.title, fontWeight = FontWeight.Bold)
+        Text(text = getDateAsString(textNoteUiState.date), color = Color.Gray)
     }
 
 }

@@ -34,11 +34,15 @@ fun AppNavHost(
         composable(route = AppScreen.Home.name) {
             HomeScreen(
                 navigateToNoteEntry = {
-                    viewModel.resetnoteUiState()
+                    if (viewModel.currentOptionState == "text") {
+                        viewModel.resetTextNoteUiState()
+                    }
                     navController.navigate(route = AppScreen.Entry.name)
                 },
                 navigateToNoteUpdate = {
-                    viewModel.updatenoteUiState(it)
+                    if (viewModel.currentOptionState == "text") {
+                        viewModel.updateTextNoteUiState(it)
+                    }
                     navController.navigate(route = AppScreen.Details.name)
                 },
                 viewModel = viewModel

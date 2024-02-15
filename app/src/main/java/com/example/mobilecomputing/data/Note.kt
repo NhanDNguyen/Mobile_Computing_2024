@@ -2,35 +2,57 @@ package com.example.mobilecomputing.data
 
 import android.graphics.Bitmap
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(tableName = "notes")
-data class Note (
+open class Note (
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val title: String = "Title",
-    val date: String = "",
-    val body: String = "",
-    val imageData: Bitmap? = null,
-    val audios: Int = 0,
+    val id: Long = 0,
+    val title: String = "",
+    val date: Long = Date().time,
+    val type: String = ""
 )
 
-@Entity(
-    tableName = "audios",
-    foreignKeys = [ForeignKey(entity = Note::class,
-        parentColumns = arrayOf("id"),
-        childColumns = arrayOf("userId"),
-        onDelete = ForeignKey.CASCADE
-    )]
+@Entity(tableName = "audios")
+data class AudioNote(
+    @PrimaryKey
+    val id: Long = 0,
+    val filePath: String = "",
+    val timestamp: Long = 0,
+    val duration: String = "",
+    val ampsPath: String = ""
 )
-data class Audio(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    val userId: Int,
-    val fileName: String,
-    val filePath: String,
-    val timestamp: Long,
-    val duration: String,
-    val ampsPath: String
+
+@Entity(tableName = "images")
+data class ImageNote(
+    @PrimaryKey
+    val id: Long = 0,
+    val imageData: Bitmap? = null,
 )
+
+@Entity(tableName = "texts")
+data class TextNote(
+    @PrimaryKey
+    val id: Long = 0,
+    val body: String = ""
+)
+
+@Entity(tableName = "drawings")
+data class DrawingNote(
+    @PrimaryKey
+    val blabal: Int
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
