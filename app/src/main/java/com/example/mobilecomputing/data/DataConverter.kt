@@ -6,10 +6,12 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.room.TypeConverter
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.util.*
@@ -24,7 +26,8 @@ class Converters {
 
     @TypeConverter
     fun toBitmap(byteArray: ByteArray): Bitmap {
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        return BitmapFactory.decodeStream(ByteArrayInputStream(byteArray))
+        //return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
 
     @TypeConverter
@@ -45,6 +48,7 @@ suspend fun getBitmap(uri: Uri?, context: Context): Bitmap {
         .data(uri)
         .build()
     val result = (loading.execute(request) as SuccessResult).drawable
+    return result.toBitmap()
     return (result as BitmapDrawable).bitmap
 }
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -35,7 +33,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.mobilecomputing.AppViewModel
-import com.example.mobilecomputing.TextNoteUiState
+import com.example.mobilecomputing.NoteDetails
+import com.example.mobilecomputing.navigation.NoteOption
+import com.example.mobilecomputing.util.DeleteConfirmationDialog
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -81,34 +81,36 @@ fun EntryScreen(
     onNavigateUp: () -> Unit,
     canNavigateBack: Boolean = true,
     navigateBack: () -> Unit,
-    screenName: String = "entry"
+    noteOption: NoteOption
 ) {
     val date: Long = Date().time
     val coroutineScope = rememberCoroutineScope()
     var onDeleteOption by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             var isTitleClicked by remember{mutableStateOf(false)}
             TextTopAppBar(
                 title = {
                     Box(
-                        modifier = Modifier.clickable(
-                            onClick = {isTitleClicked = !isTitleClicked}
-                        )
+                        modifier = Modifier
+                            .clickable(onClick = {isTitleClicked = !isTitleClicked})
+                            .padding(16.dp)
                     ) {
                         if (isTitleClicked) {
                             TextField(
-                                value = viewModel.textNoteUiState.title,
+                                value = viewModel.noteUiState.noteDetails.title,
+                                label = { Text(text = "Title")},
                                 onValueChange = {
-                                    viewModel.updateTextNoteUiState(
-                                        viewModel.textNoteUiState.copy(title = it)
+                                    viewModel.updateNoteUiState(
+                                        viewModel.noteUiState.noteDetails.copy(title = it)
                                     )
                                 },
                                 singleLine = true,
                                 enabled = true,
                                 colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = MaterialTheme.colorScheme.background,
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 ),
                                 keyboardActions = KeyboardActions(
@@ -117,18 +119,23 @@ fun EntryScreen(
                                 ),
                             )
                         } else {
-                            Text(text = viewModel.textNoteUiState.title)
+                            if (viewModel.noteUiState.noteDetails.title.isNotBlank()) {
+                                Text(text = viewModel.noteUiState.noteDetails.title)
+                            }
+                            else {
+                                Text(text = "Title", color = Color.LightGray)
+                            }
                         }
                     }
                 },
                 navigateUp = {
                     coroutineScope.launch {
-                        if (screenName == "entry") {
-                            viewModel.updateTextNoteUiState(viewModel.textNoteUiState.copy(date = date))
-                            viewModel.insertNewTextNote()
-                        } else if (screenName == "update") {
-                            viewModel.updateTextNoteUiState(viewModel.textNoteUiState.copy(date = date))
-                            viewModel.updateTextNote()
+                        if (noteOption == NoteOption.Entry) {
+                            viewModel.updateNoteUiState(viewModel.noteUiState.noteDetails.copy(date = date))
+                            viewModel.insertNewNote()
+                        } else if (noteOption == NoteOption.Update) {
+                            viewModel.updateNoteUiState(viewModel.noteUiState.noteDetails.copy(date = date))
+                            viewModel.updateNote()
                         }
                         navigateBack()
                     }
@@ -138,8 +145,8 @@ fun EntryScreen(
         }
     ) { innerPadding ->
         EntryBody(
-            textNoteUiState = viewModel.textNoteUiState,
-            onValueChange = viewModel::updateTextNoteUiState,
+            noteDetails = viewModel.noteUiState.noteDetails,
+            onValueChange = viewModel::updateNoteUiState,
             modifier = Modifier.padding(innerPadding)
         )
         if (onDeleteOption) {
@@ -147,9 +154,7 @@ fun EntryScreen(
                 onDeleteConfirm = {
                     onDeleteOption = false
                     coroutineScope.launch {
-                        // Delete Note
-                        // TODO: Delete Audios corresponding to this note
-                        viewModel.deleteTextNote()
+                        viewModel.deleteNote()
                         navigateBack()
                     }
                 },
@@ -163,11 +168,11 @@ fun EntryScreen(
 @Composable
 fun EntryBody(
     modifier: Modifier = Modifier,
-    textNoteUiState: TextNoteUiState,
-    onValueChange: (TextNoteUiState) -> Unit
+    noteDetails: NoteDetails,
+    onValueChange: (NoteDetails) -> Unit
 ) {
     InputForm(
-        textNoteUiState = textNoteUiState,
+        noteDetails = noteDetails,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxSize()
     )
@@ -176,16 +181,16 @@ fun EntryBody(
 @Composable
 fun InputForm   (
     modifier: Modifier = Modifier,
-    textNoteUiState: TextNoteUiState,
-    onValueChange: (TextNoteUiState) -> Unit,
+    noteDetails: NoteDetails,
+    onValueChange: (NoteDetails) -> Unit,
     enabled: Boolean = true
 ) {
     Box(
         modifier = modifier.background(color = Color.LightGray)
     ) {
         TextField(
-            value = textNoteUiState.body,
-            onValueChange = {onValueChange(textNoteUiState.copy(body = it))},
+            value = noteDetails.body,
+            onValueChange = {onValueChange(noteDetails.copy(body = it))},
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 10.dp),
@@ -201,27 +206,4 @@ fun InputForm   (
     }
 }
 
-@Composable
-private fun DeleteConfirmationDialog(
-    modifier: Modifier = Modifier,
-    onDeleteConfirm: () -> Unit,
-    onDeleteCancel: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = {  },
-        title = { Text(text = "Attention") },
-        text = { Text(text = "Are you sure you want to delete?") },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(onClick = onDeleteCancel) {
-                Text(text = "No")
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDeleteConfirm) {
-                Text(text = "Yes")
-            }
-        }
-    )
-}
 
