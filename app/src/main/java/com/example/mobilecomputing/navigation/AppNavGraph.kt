@@ -104,7 +104,7 @@ fun AppNavHost(
             ImageScreen(
                 viewModel = viewModel,
                 onNavigateUp = { navController.navigateUp() },
-                navigateBack = { navController.navigateUp() },
+                navigateBack = { navController.popBackStack() },
                 noteOption = noteOption
             )
         }

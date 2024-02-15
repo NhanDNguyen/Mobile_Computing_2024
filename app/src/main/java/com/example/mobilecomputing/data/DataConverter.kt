@@ -20,14 +20,14 @@ class Converters {
     @TypeConverter
     fun fromBitmap(bitmap: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
         return outputStream.toByteArray()
     }
 
     @TypeConverter
     fun toBitmap(byteArray: ByteArray): Bitmap {
-        return BitmapFactory.decodeStream(ByteArrayInputStream(byteArray))
-        //return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        //return BitmapFactory.decodeStream(ByteArrayInputStream(byteArray))
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
 
     @TypeConverter
@@ -48,7 +48,6 @@ suspend fun getBitmap(uri: Uri?, context: Context): Bitmap {
         .data(uri)
         .build()
     val result = (loading.execute(request) as SuccessResult).drawable
-    return result.toBitmap()
     return (result as BitmapDrawable).bitmap
 }
 
