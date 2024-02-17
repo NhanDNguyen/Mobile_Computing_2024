@@ -94,7 +94,7 @@ fun HomeScreen(
                         Icon(imageVector = Icons.Filled.Image, contentDescription = "Image Screen")
                     }
                     FloatingActionButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { navigateToNoteEntry(AppScreen.Audio) },
                         shape = MaterialTheme.shapes.medium,
                         modifier = Modifier
                             .padding(vertical = 5.dp)
@@ -179,7 +179,11 @@ private fun HomeBody(
                     )
                 }
                 "audio" -> {
-                    /*TODO*/
+                    AudioNoteCard(
+                        noteDetails = note.toNoteDetails(),
+                        onNoteClick = {onNoteClick(note)},
+                        widthInDp = widthInDp,
+                        heightInDp = heightInDp)
                 }
                 "drawing" -> {
                     /*TODO*/

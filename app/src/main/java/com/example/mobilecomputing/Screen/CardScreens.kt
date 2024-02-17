@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -84,6 +87,36 @@ fun ImageNoteCard(
                     modifier = Modifier.fillMaxSize()
                 )
             }
+        }
+        Text(text = noteDetails.title, fontWeight = FontWeight.Bold)
+        Text(text = getDateAsString(noteDetails.date), color = Color.Gray)
+    }
+
+}
+
+@Composable
+fun AudioNoteCard(
+    modifier: Modifier = Modifier,
+    noteDetails: NoteDetails,
+    onNoteClick: (NoteDetails) -> Unit,
+    widthInDp: Dp,
+    heightInDp: Dp
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ElevatedCard(
+            elevation = CardDefaults.cardElevation(6.dp),
+            modifier = Modifier
+                .size(width = widthInDp, height = heightInDp)
+                .clickable { onNoteClick(noteDetails) }
+                .padding(6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            Icon(imageVector = Icons.Default.Audiotrack, contentDescription = "audio")
         }
         Text(text = noteDetails.title, fontWeight = FontWeight.Bold)
         Text(text = getDateAsString(noteDetails.date), color = Color.Gray)

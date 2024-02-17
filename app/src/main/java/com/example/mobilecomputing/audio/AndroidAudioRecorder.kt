@@ -3,14 +3,16 @@ package com.example.mobilecomputing.audio
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import androidx.annotation.RequiresApi
 import java.io.File
 import java.io.FileOutputStream
 
 class AndroidAudioRecorder(
-    private val context: Context
+    private val context: Context,
 ): AudioRecorder {
 
     private var recorder: MediaRecorder? = null
+    private var isRecording = false
 
     private fun createRecorder(): MediaRecorder {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -31,13 +33,18 @@ class AndroidAudioRecorder(
             start()
 
             recorder = this
+            isRecording = true
         }
     }
 
+
     override fun stop() {
+        isRecording = false
         recorder?.stop()
-        recorder?.reset()
+        recorder?.release()
         recorder = null
     }
+
+    fun isRecorderPLaying() = isRecording
 
 }

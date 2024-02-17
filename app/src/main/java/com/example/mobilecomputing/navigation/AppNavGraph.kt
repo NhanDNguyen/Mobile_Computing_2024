@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilecomputing.AppViewModel
 import com.example.mobilecomputing.R
+import com.example.mobilecomputing.Screen.AudioScreen
 import com.example.mobilecomputing.Screen.EntryScreen
 import com.example.mobilecomputing.Screen.HomeScreen
 import com.example.mobilecomputing.Screen.ImageScreen
@@ -109,7 +110,12 @@ fun AppNavHost(
             )
         }
         composable(route = AppScreen.Audio.name) {
-
+            AudioScreen(
+                viewModel = viewModel,
+                onNavigateUp = { navController.navigateUp() },
+                navigateBack = { navController.popBackStack() },
+                noteOption = noteOption
+            )
         }
         composable(route = AppScreen.Drawing.name) {
 

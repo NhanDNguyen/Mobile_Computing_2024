@@ -1,34 +1,21 @@
 package com.example.mobilecomputing.Screen
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
-import androidx.camera.core.ImageCapture.OnImageCapturedCallback
-import androidx.camera.core.ImageProxy
-import androidx.camera.view.CameraController
-import androidx.camera.view.LifecycleCameraController
-import androidx.camera.view.PreviewView
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -55,10 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.mobilecomputing.AppViewModel
 import com.example.mobilecomputing.NoteDetails
@@ -71,7 +54,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 enum class ImageOption {
-    Delete, Choose, None
+    Delete, None
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,42 +123,32 @@ fun ImageScreen(
                     navigateBack()
                 },
                 onDeleteClick = { imageOption = ImageOption.Delete },
-                onImageClick = { imageOption = ImageOption.Choose }
+                onSelectedImage = {
+                    viewModel.updateNoteUiState(viewModel.noteUiState.noteDetails.copy(imageData = it))
+                },
             )
         }
     ) { innerPadding ->
         Surface(modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)) // Add this to fix it
+            .padding(innerPadding))
         {
             ImageBody(
                 noteDetails = viewModel.noteUiState.noteDetails,
                 modifier = Modifier
             )
-            when (imageOption) {
-                ImageOption.Delete -> {
-                    DeleteConfirmationDialog(
-                        onDeleteConfirm = {
-                            imageOption = ImageOption.None
-                            coroutineScope.launch {
-                                viewModel.deleteNote()
-                                navigateBack()
-                            }
-                        },
-                        onDeleteCancel = { imageOption = ImageOption.None },
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-                ImageOption.Choose -> {
-                    CameraAndPhotoSelector(
-                        onSelectedImage = {
-                            viewModel.updateNoteUiState(viewModel.noteUiState.noteDetails.copy(imageData = it))
-                            imageOption = ImageOption.None
-                        },
-                        onCancel = {imageOption = ImageOption.None}
-                    )
-                }
-                else -> {}
+            if (imageOption == ImageOption.Delete) {
+                DeleteConfirmationDialog(
+                    onDeleteConfirm = {
+                        imageOption = ImageOption.None
+                        coroutineScope.launch {
+                            viewModel.deleteNote()
+                            navigateBack()
+                        }
+                    },
+                    onDeleteCancel = { imageOption = ImageOption.None },
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
@@ -206,93 +179,6 @@ fun ImageLayoutView(
     }
 }
 
-
-@Composable
-fun CameraAndPhotoSelector(
-    onSelectedImage: (Bitmap?) -> Unit,
-    onCancel: () -> Unit
-) {
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    val file = context.createImageFile()
-    val tempUri = FileProvider.getUriForFile(
-        context,
-        "com.example.mobilecomputing.fileprovider", file
-    )
-
-    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            if (uri != null) {
-                coroutineScope.launch {
-                    onSelectedImage(getBitmap(uri, context))
-                }
-            }
-        }
-    )
-    fun launchPhotoPicker() {
-        singlePhotoPickerLauncher.launch(
-            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-        )
-    }
-
-    val singlePictureCaptureLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicturePreview()
-    ) { capturedImage ->
-        if (capturedImage != null) {
-            onSelectedImage(capturedImage)
-        }
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                coroutineScope.launch {
-                    onSelectedImage(getBitmap(tempUri, context))
-                }
-            }
-        }
-    )
-
-
-    AlertDialog(
-        onDismissRequest = {  },
-        title = { Text(text = "Attention") },
-        text = { Text(text = "Choose one the options") },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(text = "Cancel")
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    //singlePictureCaptureLauncher.launch()
-                    cameraLauncher.launch(tempUri)
-                }
-            ) {
-                Text(text = "take picture")
-            }
-            TextButton(onClick = {launchPhotoPicker()}) {
-                Text(text = "pick photo")
-            }
-        }
-    )
-}
-
-fun Context.createImageFile(): File {
-    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-    val imageFileName = "PNG_" + timestamp + "_"
-    return File.createTempFile(
-        imageFileName,
-        ".PNG",
-        externalCacheDir
-    )
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageTopAppBar(
@@ -301,7 +187,7 @@ fun ImageTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     navigateUp: () -> Unit = {},
     onDeleteClick: () -> Unit,
-    onImageClick: () -> Unit,
+    onSelectedImage: (Bitmap?) -> Unit
 ) {
     SmallTopAppBar(
         title = title,
@@ -322,15 +208,83 @@ fun ImageTopAppBar(
             }
         },
         actions = {
-            TextButton(
-                onClick = onImageClick,
-                border = BorderStroke(width = 2.dp, Color.DarkGray)
-            ) {
-                Text(text = "Choose Photo", color = Color.DarkGray)
-            }
+            CameraLauncher(onSelectedImage = onSelectedImage)
+            PhotoSelector(onSelectedImage = onSelectedImage)
             IconButton(onClick = onDeleteClick) {
                 Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete")
             }
         },
+    )
+}
+
+@Composable
+fun CameraLauncher(
+    onSelectedImage: (Bitmap?) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val file = context.createImageFile()
+    val tempUri = FileProvider.getUriForFile(
+        context,
+        "com.example.mobilecomputing.fileprovider", file
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                coroutineScope.launch {
+                    onSelectedImage(getBitmap(tempUri, context))
+                }
+            }
+        }
+    )
+
+    IconButton(
+        onClick = { cameraLauncher.launch(tempUri) },
+    ) {
+        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = "Take photo")
+    }
+}
+
+@Composable
+fun PhotoSelector(
+    onSelectedImage: (Bitmap?) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                coroutineScope.launch {
+                    onSelectedImage(getBitmap(uri, context))
+                }
+            }
+        }
+    )
+    fun launchPhotoPicker() {
+        singlePhotoPickerLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
+
+    IconButton(
+        onClick = { launchPhotoPicker() },
+    ) {
+        Icon(imageVector = Icons.Default.Image, contentDescription = "Choose Photo")
+    }
+}
+
+fun Context.createImageFile(): File {
+    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+    val imageFileName = "PNG_" + timestamp + "_"
+    return File.createTempFile(
+        imageFileName,
+        ".PNG",
+        externalCacheDir
     )
 }

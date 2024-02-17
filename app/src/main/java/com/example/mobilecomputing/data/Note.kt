@@ -22,10 +22,8 @@ data class Note (
 
     // Audio
     val filePath: String = "",
-    val timestamp: Long = 0,
-    val duration: String = "",
+    val durationMillis: Long = 0L,
     val ampsPath: String = "",
-
     // Drawing
 )
 
