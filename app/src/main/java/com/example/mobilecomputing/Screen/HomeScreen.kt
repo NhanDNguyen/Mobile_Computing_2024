@@ -102,15 +102,6 @@ fun HomeScreen(
                     ) {
                         Icon(imageVector = Icons.Filled.Mic, contentDescription = "Audio Screen")
                     }
-                    FloatingActionButton(
-                        onClick = { /*TODO*/ },
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier
-                            .padding(vertical = 5.dp)
-                            .padding(horizontal = 20.dp)
-                    ) {
-                        Icon(imageVector = Icons.Filled.Draw, contentDescription = "Drawing Screen")
-                    }
                 }
                 FloatingActionButton(
                     onClick = {expandOption = !expandOption},
@@ -184,9 +175,6 @@ private fun HomeBody(
                         onNoteClick = {onNoteClick(note)},
                         widthInDp = widthInDp,
                         heightInDp = heightInDp)
-                }
-                "drawing" -> {
-                    /*TODO*/
                 }
                 else -> {}
             }

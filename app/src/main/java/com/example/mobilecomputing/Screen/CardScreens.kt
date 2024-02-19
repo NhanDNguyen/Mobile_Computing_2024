@@ -2,12 +2,15 @@ package com.example.mobilecomputing.Screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.Audiotrack
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -104,19 +107,31 @@ fun AudioNoteCard(
 ) {
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         ElevatedCard(
             elevation = CardDefaults.cardElevation(6.dp),
             modifier = Modifier
                 .size(width = widthInDp, height = heightInDp)
                 .clickable { onNoteClick(noteDetails) }
-                .padding(6.dp),
+                .padding(6.dp)
+                .fillMaxSize(),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             )
         ) {
-            Icon(imageVector = Icons.Default.Audiotrack, contentDescription = "audio")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Audiotrack,
+                    contentDescription = "audio",
+                    modifier = Modifier.size(80.dp)
+                )
+                Text(text = noteDetails.ampsPath)
+            }
         }
         Text(text = noteDetails.title, fontWeight = FontWeight.Bold)
         Text(text = getDateAsString(noteDetails.date), color = Color.Gray)

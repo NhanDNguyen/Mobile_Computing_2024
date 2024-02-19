@@ -38,7 +38,7 @@ fun NoteTopAppBar(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun NoteApp(
     modifier: Modifier = Modifier,

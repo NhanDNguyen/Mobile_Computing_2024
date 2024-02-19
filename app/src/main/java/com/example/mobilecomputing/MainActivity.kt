@@ -17,6 +17,7 @@ import com.example.mobilecomputing.permission.permissionList
 import com.example.mobilecomputing.ui.theme.MobileComputingTheme
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

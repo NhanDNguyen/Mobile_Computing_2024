@@ -281,10 +281,10 @@ fun PhotoSelector(
 
 fun Context.createImageFile(): File {
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-    val imageFileName = "PNG_" + timestamp + "_"
+    val imageFileName = "JPG_" + timestamp + "_"
     return File.createTempFile(
         imageFileName,
-        ".PNG",
+        ".JPEG",
         externalCacheDir
     )
 }

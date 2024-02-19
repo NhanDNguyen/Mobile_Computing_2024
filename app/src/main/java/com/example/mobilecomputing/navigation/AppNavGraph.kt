@@ -1,5 +1,7 @@
 package com.example.mobilecomputing.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,14 +21,6 @@ import com.example.mobilecomputing.Screen.HomeScreen
 import com.example.mobilecomputing.Screen.ImageScreen
 import com.example.mobilecomputing.toNoteDetails
 
-/*enum class AppScreen(@StringRes val title: Int) {
-    Home(title = R.string.home),
-    Entry(title = R.string.note_entry),
-    Details(title = R.string.note_details),
-    Edit(title = R.string.profile_edit),
-    Settings(title = R.string.app_settings)
-}*/
-
 enum class AppScreen {
     Home, Text, Image, Audio, Drawing
 }
@@ -35,6 +29,7 @@ enum class NoteOption {
     Entry, Update
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
@@ -64,10 +59,6 @@ fun AppNavHost(
                             viewModel.resetNoteUiState("audio")
                             navController.navigate(route = AppScreen.Audio.name)
                         }
-                        AppScreen.Drawing -> {
-                            viewModel.resetNoteUiState("drawing")
-                            navController.navigate(route = AppScreen.Drawing.name)
-                        }
                         else -> {}
                     }
                 },
@@ -83,9 +74,6 @@ fun AppNavHost(
                         }
                         "audio" -> {
                             navController.navigate(route = AppScreen.Audio.name)
-                        }
-                        "drawing" -> {
-                            navController.navigate(route = AppScreen.Drawing.name)
                         }
                         else -> {}
                     }
@@ -116,9 +104,6 @@ fun AppNavHost(
                 navigateBack = { navController.popBackStack() },
                 noteOption = noteOption
             )
-        }
-        composable(route = AppScreen.Drawing.name) {
-
         }
     }
 }

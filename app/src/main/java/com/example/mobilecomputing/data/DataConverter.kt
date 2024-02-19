@@ -26,8 +26,8 @@ class Converters {
 
     @TypeConverter
     fun toBitmap(byteArray: ByteArray): Bitmap {
-        //return BitmapFactory.decodeStream(ByteArrayInputStream(byteArray))
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        return BitmapFactory.decodeStream(ByteArrayInputStream(byteArray))
+        //return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
 
     @TypeConverter

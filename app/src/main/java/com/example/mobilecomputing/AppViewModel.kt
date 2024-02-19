@@ -33,19 +33,6 @@ class AppViewModel(
     var noteUiState by mutableStateOf(NoteUiState())
         private set
 
-    private val _timerUiState = MutableStateFlow(TimerUiState())
-    val timerUiState: StateFlow<TimerUiState> = _timerUiState.asStateFlow()
-
-    fun updateTimerUiState(isActive: Boolean = _timerUiState.value.isActive) {
-        _timerUiState.update {
-            it.copy(
-                isActive = isActive
-            )
-        }
-    }
-
-    fun getTimerState() = _timerUiState.value.isActive
-
     var noteUiStates: StateFlow<NoteUiStates> =
         db.getAllNotes().map { NoteUiStates(it) }
             .stateIn(
@@ -120,7 +107,7 @@ data class NoteDetails(
     // Audio
     val filePath: String = "",
     val durationMillis: Long = 0L,
-    val ampsPath: String = "",
+    val ampsPath: String = "00:00:00",
 )
 
 fun NoteDetails.toNote() = Note(
@@ -151,8 +138,4 @@ fun Note.toNoteDetails() = NoteDetails(
     filePath = filePath,
     durationMillis = durationMillis,
     ampsPath = ampsPath
-)
-
-data class TimerUiState(
-    val isActive: Boolean = false
 )
